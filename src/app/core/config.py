@@ -1,6 +1,13 @@
+import os
+from dotenv import load_dotenv
 from enum import Enum
 from pydantic import SecretStr, Field
 from pydantic_settings import BaseSettings
+
+
+current_file_dir = os.path.dirname(os.path.realpath(__file__))
+env_path = os.path.abspath(os.path.join(current_file_dir, "..", "..", "..", ".env"))
+load_dotenv(env_path)
 
 
 class EnvironmentOption(str, Enum):
@@ -31,7 +38,7 @@ class PostgresqlSettings(DatabaseSettings):
     POSTGRES_PASSWORD: str = Field(default="postgres")
     POSTGRES_SERVER: str = Field(default="localhost")
     POSTGRES_PORT: int = Field(default=5432)
-    POSTGRES_DB: str = Field(default="tattvan")
+    POSTGRES_DB: str
     POSTGRES_SYNC_PREFIX: str = Field(default="postgresql://")
     POSTGRES_ASYNC_PREFIX: str = Field(default="postgresql+asyncpg://")
 
