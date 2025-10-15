@@ -9,16 +9,24 @@ class EnvironmentOption(str, Enum):
     PRODUCTION = "production"
 
 
-class Settings(BaseSettings):
+class AppSettings(BaseSettings):
     APP_NAME: str = Field(default="Falcon Backend")
     APP_DESCRIPTION: str = Field(default="Falcon Backend API")
     APP_VERSION: str | None = Field(default=None)
 
+
+class CryptSettings(BaseSettings):
     SECRET_KEY: SecretStr = Field(default=SecretStr("testing"))
     ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7)
 
+
+class DatabaseSettings(BaseSettings):
+    pass
+
+
+class PostgresqlSettings(DatabaseSettings):
     POSTGRES_USER: str = Field(default="postgres")
     POSTGRES_PASSWORD: str = Field(default="postgres")
     POSTGRES_SERVER: str = Field(default="localhost")
@@ -28,10 +36,25 @@ class Settings(BaseSettings):
     POSTGRES_ASYNC_PREFIX: str = Field(default="postgresql+asyncpg://")
     POSTGRES_URL: str | None = Field(default=None)
 
+    @property
+    def POSTGRES_URI(self) -> str:
+        return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+
+class ClientSideSettings(BaseSettings):
     CLIENT_CACHE_MAX_AGE: int = Field(default=60)
 
+
+class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOption = Field(default=EnvironmentOption.LOCAL)
 
+
+class Settings(
+    AppSettings,
+    CryptSettings,
+    DatabaseSettings,
+    EnvironmentSettings,
+):
     class Config:
         fields = {
             "APP_NAME": {"env": "APP_NAME"},
@@ -52,10 +75,6 @@ class Settings(BaseSettings):
             "CLIENT_CACHE_MAX_AGE": {"env": "CLIENT_CACHE_MAX_AGE"},
             "ENVIRONMENT": {"env": "ENVIRONMENT"},
         }
-
-    @property
-    def POSTGRES_URI(self) -> str:
-        return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
 settings = Settings()

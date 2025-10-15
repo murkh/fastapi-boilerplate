@@ -8,12 +8,12 @@ from fastapi import APIRouter, FastAPI
 
 from .config import (
     AppSettings,
-    ClientSideCacheSettings,
     DatabaseSettings,
     EnvironmentOption,
     EnvironmentSettings,
 )
-from .db.models import Base
+from .error_handling import general_exception_handler
+from .db.database import Base
 from .db.database import async_engine as engine
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -32,9 +32,7 @@ async def set_threadpool_tokens(number_of_tokens: int = 100) -> None:
 
 
 def lifespan_factory(
-    settings: (
-        DatabaseSettings | AppSettings | ClientSideCacheSettings | EnvironmentSettings
-    ),
+    settings: (DatabaseSettings | AppSettings | EnvironmentSettings),
     create_tables_on_start: bool = True,
 ) -> Callable[[FastAPI], _AsyncGeneratorContextManager[Any]]:
     """Factory to create a lifespan async context manager for a FastAPI app."""
@@ -66,9 +64,7 @@ def lifespan_factory(
 # -------------- application --------------
 def create_application(
     router: APIRouter,
-    settings: (
-        DatabaseSettings | AppSettings | ClientSideCacheSettings | EnvironmentSettings
-    ),
+    settings: (DatabaseSettings | AppSettings | EnvironmentSettings),
     create_tables_on_start: bool = False,
     **kwargs: Any,
 ) -> FastAPI:
@@ -122,6 +118,7 @@ def create_application(
     lifespan = lifespan_factory(settings, create_tables_on_start=create_tables_on_start)
 
     application = FastAPI(lifespan=lifespan, **kwargs)
+    application.add_exception_handler(Exception, general_exception_handler)
     application.include_router(router)
 
     if isinstance(settings, EnvironmentSettings):
