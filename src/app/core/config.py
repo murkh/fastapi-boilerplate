@@ -34,7 +34,6 @@ class PostgresqlSettings(DatabaseSettings):
     POSTGRES_DB: str = Field(default="tattvan")
     POSTGRES_SYNC_PREFIX: str = Field(default="postgresql://")
     POSTGRES_ASYNC_PREFIX: str = Field(default="postgresql+asyncpg://")
-    POSTGRES_URL: str | None = Field(default=None)
 
     @property
     def POSTGRES_URI(self) -> str:
@@ -52,7 +51,7 @@ class EnvironmentSettings(BaseSettings):
 class Settings(
     AppSettings,
     CryptSettings,
-    DatabaseSettings,
+    PostgresqlSettings,
     EnvironmentSettings,
 ):
     class Config:
